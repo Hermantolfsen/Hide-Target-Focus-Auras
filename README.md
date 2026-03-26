@@ -12,7 +12,7 @@ A lightweight World of Warcraft addon that hides buffs and debuffs on the target
 
 ## Installation
 
-1. Download the latest release
+1. Download the latest release (Also available on CurseForge, name: Hide Target & Focus Auras)
 2. Extract to:
    World of Warcraft/*retail*/Interface/AddOns/
 3. Reload UI (`/reload`)
