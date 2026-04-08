@@ -31,6 +31,7 @@ From there you can enable or disable:
 
 ## Slash Commands
 
+```
 /htfa status
 /htfa target buff on
 /htfa target buff off
@@ -40,6 +41,7 @@ From there you can enable or disable:
 /htfa focus buff off
 /htfa focus debuff on
 /htfa focus debuff off
+```
 
 ---
 
@@ -75,4 +77,5 @@ From there you can enable or disable:
 ## Feedback
 
 Issues and suggestions can be submitted via GitHub or CurseForge.
+
 
