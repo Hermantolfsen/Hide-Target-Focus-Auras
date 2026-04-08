@@ -1,16 +1,18 @@
 # Hide Target & Focus Auras
 
-A lightweight World of Warcraft addon that allows you to control which buffs and debuffs are shown on the default Blizzard target and focus frames.
+A lightweight World of Warcraft addon that lets you control which buffs and debuffs are shown on the default Blizzard target and focus frames.
+
+**CurseForge:** [Hide Target & Focus Auras](https://www.curseforge.com/wow/addons/hide-target-focus-auras)
 
 ---
 
 ## Features
 
-* Toggle buffs and debuffs independently
-* Separate control for target and focus frames
-* In-game options panel with checkboxes
-* Slash command support
-* Minimal and lightweight
+- Toggle buffs and debuffs independently
+- Separate control for target and focus frames
+- In-game options panel with checkboxes
+- Slash command support
+- Minimal and lightweight
 
 ---
 
@@ -18,20 +20,20 @@ A lightweight World of Warcraft addon that allows you to control which buffs and
 
 Open the options panel:
 
-ESC → Options → AddOns → Hide Target & Focus Auras
+`ESC → Options → AddOns → Hide Target & Focus Auras`
 
 From there you can enable or disable:
 
-* Target buffs
-* Target debuffs
-* Focus buffs
-* Focus debuffs
+- Target buffs
+- Target debuffs
+- Focus buffs
+- Focus debuffs
 
 ---
 
 ## Slash Commands
 
-```
+```txt
 /htfa status
 /htfa target buff on
 /htfa target buff off
@@ -41,41 +43,5 @@ From there you can enable or disable:
 /htfa focus buff off
 /htfa focus debuff on
 /htfa focus debuff off
-```
-
----
-
-## Installation
-
-1. Download the latest release (On GitHub or CurseForge)
-2. Extract into:
-   World of Warcraft/*retail*/Interface/AddOns/
-3. Reload the UI with:
-   /reload
-
----
-
-## Version
-
-### v1.1.0
-
-* Added independent toggles for buffs and debuffs
-* Added separate control for target and focus frames
-* Added in-game options panel
-* Replaced previous global toggle system
-
----
-
-## Notes
-
-* Designed for the default Blizzard UI
-* Settings are saved automatically
-* May require interface version updates after major patches
-
----
-
-## Feedback
-
-Issues and suggestions can be submitted via comments on CurseForge.
 
 
