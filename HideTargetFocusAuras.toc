@@ -2,7 +2,7 @@
 ## Title: Hide Target & Focus Auras
 ## Notes: Hides buffs and debuffs on the default target and focus frames.
 ## Author: Apollex1
-## Version: 1.1.0
+## Version: 1.1.1
 ## SavedVariables: HTFA_Settings
 
 HideTargetFocusAuras.lua
