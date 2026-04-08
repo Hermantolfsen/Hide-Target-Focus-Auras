@@ -76,6 +76,6 @@ From there you can enable or disable:
 
 ## Feedback
 
-Issues and suggestions can be submitted via GitHub or CurseForge.
+Issues and suggestions can be submitted via comments on CurseForge.
 
 
