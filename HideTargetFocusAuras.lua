@@ -83,6 +83,43 @@ local function PrintUsage()
     Print("/htfa focus debuff off")
 end
 
+-- WoW 12.1+ uses a ManagedAuraContainer on TargetFrame/FocusFrame.
+-- Blizzard reads maxBuffs/maxDebuffs from the unit frame when configuring
+-- that container. Setting either value to 0 disables that aura type.
+-- Setting it to nil restores Blizzard's default maximum.
+local function UsesManagedAuraContainer(unitFrame)
+    return unitFrame
+        and type(unitFrame.GetAuraContainer) == "function"
+        and type(unitFrame.ConfigureAuraContainer) == "function"
+end
+
+local function ApplyManagedAuraVisibility(unitFrame, settings)
+    -- Use Blizzard's explicit defaults when an aura type is enabled.
+    -- This makes OFF -> ON deterministic instead of relying on nil fallback.
+    local defaults = TargetFrameAuraContainerDefaults
+
+    if defaults then
+        unitFrame.maxBuffs = settings.buffs and defaults.MaxBuffs or 0
+        unitFrame.maxDebuffs = settings.debuffs and defaults.MaxDebuffs or 0
+    else
+        -- Fallback in case Blizzard renames the defaults table.
+        unitFrame.maxBuffs = settings.buffs and 32 or 0
+        unitFrame.maxDebuffs = settings.debuffs and 16 or 0
+    end
+
+    if type(unitFrame.UpdateAuras) == "function" then
+        unitFrame:UpdateAuras()
+    else
+        unitFrame:ConfigureAuraContainer()
+
+        local auraContainer = unitFrame:GetAuraContainer()
+        if auraContainer and type(auraContainer.UpdateAllAuras) == "function" then
+            auraContainer:UpdateAllAuras()
+        end
+    end
+end
+
+-- Legacy helpers kept so the addon still behaves on older 12.0.x clients.
 local function HideAuraButton(button)
     if not button then return end
     button:SetAlpha(0)
@@ -148,7 +185,7 @@ local function ApplyMixedPool(unitFrame, pool)
         elseif harmful == false then
             shouldShow = settings.buffs
         else
-            -- If we cannot classify it, default to showing it
+            -- If we cannot classify it, default to showing it.
             shouldShow = true
         end
 
@@ -160,12 +197,8 @@ local function ApplyMixedPool(unitFrame, pool)
     end
 end
 
-local function ApplyFrameAuras(unitFrame, settings)
-    if not unitFrame or not settings then
-        return
-    end
-
-    -- Preferred modern path: specific buff/debuff pools on auraPools
+local function ApplyLegacyAuraVisibility(unitFrame, settings)
+    -- 12.0.x path: separate buff/debuff pools on the unit frame.
     if unitFrame.auraPools and type(unitFrame.auraPools.GetPool) == "function" then
         local buffPool = unitFrame.auraPools:GetPool("TargetBuffFrameTemplate")
         local debuffPool = unitFrame.auraPools:GetPool("TargetDebuffFrameTemplate")
@@ -176,12 +209,11 @@ local function ApplyFrameAuras(unitFrame, settings)
             return
         end
 
-        -- Fallback if Blizzard changes pool names and keeps one mixed pool system
         ApplyMixedPool(unitFrame, unitFrame.auraPools)
         return
     end
 
-    -- Older / fallback containers
+    -- Older fallback containers.
     if unitFrame.BuffFrame and unitFrame.BuffFrame.pool then
         ApplyPoolVisibility(unitFrame.BuffFrame.pool, settings.buffs)
     end
@@ -189,6 +221,19 @@ local function ApplyFrameAuras(unitFrame, settings)
     if unitFrame.DebuffFrame and unitFrame.DebuffFrame.pool then
         ApplyPoolVisibility(unitFrame.DebuffFrame.pool, settings.debuffs)
     end
+end
+
+local function ApplyFrameAuras(unitFrame, settings)
+    if not unitFrame or not settings then
+        return
+    end
+
+    if UsesManagedAuraContainer(unitFrame) then
+        ApplyManagedAuraVisibility(unitFrame, settings)
+        return
+    end
+
+    ApplyLegacyAuraVisibility(unitFrame, settings)
 end
 
 local function ApplyAllVisibleAuras()
@@ -219,12 +264,17 @@ local function CreateCheckbox(parent, label, x, y, getValue, setValue)
     end
 
     checkbox:SetScript("OnClick", function(self)
-        setValue(self:GetChecked() and true or false)
+        -- Read and store the checkbox state explicitly, then re-apply the
+        -- managed aura limits immediately.
+        local value = self:GetChecked() and true or false
+        self:SetChecked(value)
+        setValue(value)
         ApplyAllVisibleAuras()
     end)
 
     checkbox:SetScript("OnShow", function(self)
-        self:SetChecked(getValue())
+        EnsureSettings()
+        self:SetChecked(getValue() and true or false)
     end)
 
     return checkbox
@@ -327,8 +377,15 @@ local function CreateOptionsPanel()
     end
 end
 
-local function HookFrame(frameToHook, settingsKey)
+local function HookLegacyFrame(frameToHook, settingsKey)
     if not frameToHook or frameToHook.HTFAHooked then
+        return
+    end
+
+    -- WoW 12.1+ no longer needs an UpdateAuras hook. The maxBuffs/maxDebuffs
+    -- values persist on the TargetFrame/FocusFrame and Blizzard respects them
+    -- on every managed-container refresh.
+    if UsesManagedAuraContainer(frameToHook) then
         return
     end
 
@@ -337,7 +394,7 @@ local function HookFrame(frameToHook, settingsKey)
     if type(frameToHook.UpdateAuras) == "function" then
         hooksecurefunc(frameToHook, "UpdateAuras", function(self)
             EnsureSettings()
-            ApplyFrameAuras(self, HTFA_Settings[settingsKey])
+            ApplyLegacyAuraVisibility(self, HTFA_Settings[settingsKey])
         end)
     end
 end
@@ -355,11 +412,11 @@ frame:SetScript("OnEvent", function(_, event)
     end
 
     if TargetFrame then
-        HookFrame(TargetFrame, "target")
+        HookLegacyFrame(TargetFrame, "target")
     end
 
     if FocusFrame then
-        HookFrame(FocusFrame, "focus")
+        HookLegacyFrame(FocusFrame, "focus")
     end
 
     ApplyAllVisibleAuras()
